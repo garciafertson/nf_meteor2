@@ -1,12 +1,12 @@
 //import modules
-//include{alientrimmer} from '../modules/alientrimmer'
 include{fastp} from '../modules/fastp'
 include{meteor_fastq} from '../modules/meteor'
-include{meteor} from '../modules/meteor'
-include{report} from '../modules/report'
+include{meteor_map} from '../modules/meteor'
+include{meteor_profile} from '../modules/meteor'
 include{meteor_merge} from '../modules/meteor'
+//include{bowtie_rmhost} from  '../modules/bowtie'
 
-workflow MAP{
+workflow METEOR{
     //read fastq sequences paired end or single end and save into channel
     Channel
     .fromFilePairs(params.input, size: params.single_end ? 1 : 2)
@@ -20,24 +20,24 @@ workflow MAP{
                 }
     .set { ch_raw_short_reads }
     catalogue = Channel.value(file( "${params.catalogue}" ))
+    host_genome = Channel.value(file( "${params.host_index}" ))
     fastp(ch_raw_short_reads)
     clean_reads = fastp.out.clean_reads
 
-    //remove host reads provide genome reference as fasta file
-    //host_genome = Channel.value(file( "${params.host_genome}" ))
     //bowtie2_rmhost(clean_reads, host_genome)
-    //clean_reads_rmhost = bowtie2_rmhost.out.clean_reads
+    //reads_rmhost = bowtie2_rmhost.out.reads_rmhost
 
-    meteor_fastq(clean_reads, catalogue)
+    meteor_fastq(clean_reads)
+    //meteor_fastq(reads_rmhost)
     census_reads = meteor_fastq.out.census_reads
 
-    meteor(census_reads, catalogue)
-    mapreads=meteor.out.mapped_reads.collect()
+    meteor_map(census_reads, catalogue)
+    mapreads=meteor_map.out.mapped_reads
 
     meteor_profile(mapreads)
-    profiled_samples=meteor_profile.out.profiled_samples
+    profiled_samples=meteor_profile.out.profiled_samples.collect()
 
-    meteor_merge(profiled_samples)
+    meteor_merge(profiled_samples, catalogue)
 
     //readcount=meteor.out.readcount
     //report(readcount)

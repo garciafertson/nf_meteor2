@@ -2,7 +2,8 @@ process meteor_fastq{
   memory "20GB"
   cpus 2
   time '6h'
-  container "sysbiojfgg/meteor:V0.1"
+  container "sysbiojfgg/meteor2:v0.1"
+  publishDir "meteor_out/fq" 
 
   input:
     tuple val(x), path(reads)
@@ -29,17 +30,19 @@ process meteor_fastq{
     }
 }
 
-process meteor{
+process meteor_map{
   memory params.meteor_memory
   cpus params.meteor_threads
   time '12h'
   container "sysbiojfgg/meteor:V0.1"
+  publishDir "meteor_out/map" 
+
 
   input:
     tuple val(x), path(reads)
     path(ref_dir)
   output:
-    tuple val(x), path("${x.id}."), emit: mapped_reads
+    tuple val(x), path("out_dir"), emit: mapped_reads
 
   script:
     if(x.single_end) {
@@ -67,18 +70,20 @@ process meteor_profile{
   memory "48GB"
   cpus 8
   time '6h'
-  container "sysbiojfgg/meteor2:V0.1"
+  container "sysbiojfgg/meteor2:v0.1"
+  publishDir "meteor_out/profile" 
+
 
   input:
-    path(mappings)
+    tuple val(x), path(mappings)
   output:
-    path("meteor_profile"), emit: tables
+    path("${x}_meteor_profile"), emit: profiled_samples
 
   script:
       """
       meteor profile \\
              -i ${mappings} \\
-             -o meteor_profile \\
+             -o ${x}_meteor_profile \\
       """
 }
 
@@ -86,8 +91,8 @@ process meteor_merge{
   memory "48GB"
   cpus 2
   time '10h'
-  container "sysbiojfgg/meteor2:V0.1"
-  publishDir "meteor_output", mode: 'copy'
+  container "sysbiojfgg/meteor2:v0.1"
+  publishDir "meteor_out", mode: 'copy'
 
   input:
     path(mappings_dir)
