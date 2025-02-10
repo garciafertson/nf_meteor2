@@ -1,7 +1,7 @@
 
 process bowtie2_rmhost {
     //directives
-    publishDir "${params.output}/bowtie2_remove_host"
+    //publishDir "${params.output}/bowtie2_remove_host"
     container "ummidock/bowtie2_samtools:1.0.0-2"
     cpus params.bwtcores
     memory '24 GB'
@@ -12,7 +12,7 @@ process bowtie2_rmhost {
       path index
 
     output:
-      tuple val(x), path("*.unmapped*.fastq.gz") , emit: reads_rmhost
+      tuple val(x), path("*.fq.gz") , emit: reads_rmhost
       path  "*.mapped*.read_ids.txt", optional:true , emit: read_ids
       tuple val(x), path("*.bowtie2.log")        , emit: log
 
@@ -28,7 +28,7 @@ process bowtie2_rmhost {
           bowtie2 -p ${task.cpus} \\
                   -1 "${reads[0]}" -2 "${reads[1]}"  ${args2}\\
                   -x ${btidx}/${btidx} \\
-                  --un-conc-gz ${prefix}.unmapped_%.fastq.gz \\
+                  --un-conc-gz ${prefix}.%.fq.gz \\
                   --al-conc-gz ${prefix}.mapped_%.fastq.gz \\
                   1> /dev/null \\
                   2> ${prefix}.bowtie2.log
@@ -41,7 +41,7 @@ process bowtie2_rmhost {
           bowtie2 -p ${task.cpus} \\
                   -x ${btidx}/${btidx} \\
                   -U ${reads} ${args}\\
-                  --un-gz ${prefix}.unmapped.fastq.gz \\
+                  --un-gz ${prefix}.fq.gz \\
                   --al-gz ${prefix}.mapped.fastq.gz \\
                   1> /dev/null \\
                   2> ${prefix}.bowtie2.log
