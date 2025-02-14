@@ -3,8 +3,10 @@ include{fastp} from '../modules/fastp'
 include{meteor_fastq} from '../modules/meteor'
 include{meteor_map} from '../modules/meteor'
 include{meteor_profile} from '../modules/meteor'
-include{meteor_merge} from '../modules/meteor'
+include{meteor_merge as meteor_merge} from '../modules/meteor'
 include{bowtie2_rmhost} from  '../modules/bowtie2'
+include{meteor_profile_downsize} from '../modules/meteor'
+include{meteor_merge as meteor_merge_dw} from '../modules/meteor'
 
 workflow METEOR{
     //read fastq sequences paired end or single end and save into channel
@@ -19,6 +21,7 @@ workflow METEOR{
                   return [ meta, row[1] ]
                 }
     .set { ch_raw_short_reads }
+
     catalogue = Channel.value(file( "${params.catalogue}" ))
     host_genome = Channel.value(file( "${params.host_index}" ))
     fastp(ch_raw_short_reads)
@@ -44,13 +47,13 @@ workflow METEOR{
 
 }
 
-/*workflow METEOR_DOWNSIZE{
-  meteor_maps=Channel.path("${params.meteor_out}")
+workflow METEOR_DOWNSIZE{
+  meteor_maps=Channel.fromPath("${params.meteor_maps}", type: "dir")
+  catalogue = Channel.value(file( "${params.catalogue}" ))
 
-  meteor_profile_downsize(meteor_maps)
-  profiled_samples=meteor_profile_downsize.out.profiled_samples.collect()
+  meteor_profile_downsize(meteor_maps,catalogue)
+  profiled_samples=meteor_profile_downsize.out.profiled_samples
 
-  meteor_merge(profiled_samples)  
+  meteor_merge_dw(profiled_samples, catalogue)  
 }
-*/
 

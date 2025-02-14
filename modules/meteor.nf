@@ -1,7 +1,7 @@
 process meteor_fastq{
-  memory "20GB"
+  memory "12GB"
   cpus 2
-  time '6h'
+  time '2h'
   container "sysbiojfgg/meteor2:v0.2"
   containerOptions "--bind ${workflow.homeDir}"
   publishDir "${params.output}/fq" 
@@ -37,10 +37,13 @@ process meteor_fastq{
 process meteor_map{
   memory params.meteor_memory
   cpus params.meteor_threads
+  maxForks 25
+  errorStrategy 'retry'
+  maxRetries 2
   time '12h'
   container "sysbiojfgg/meteor2:v0.2"
   containerOptions "--bind ${workflow.homeDir}"
-  publishDir "${params.output}/map" 
+  publishDir "${params.output}"
 
 
   input:
@@ -72,12 +75,12 @@ process meteor_map{
 }
 
 process meteor_profile{
-  memory "12GB"
-  cpus 2
+  memory "6GB"
+  cpus 1
   time '2h'
   container "sysbiojfgg/meteor2:v0.2"
   containerOptions "--bind ${workflow.homeDir}"
-  publishDir "${params.output}/profile" 
+  publishDir "${params.output}" 
 
 
   input:
@@ -105,29 +108,31 @@ process meteor_profile_downsize{
   publishDir "${params.output}/profile_dwsize" 
 
   input:
-    tuple val(x), path(mappings)
-    val(params.cutoff)
+    path (mappings)
+    path (ref_dir)
   output:
-    path("profile_dwsize_${x}_${params.downsize_cutoff}"), emit: profiled_samples
+    tuple val(x), path("${x.id}_${params.downsize_cutoff}"), emit: profiled_samples
 
   script:
+      filename= mappings.getSimpleName()
+      x= [id : filename.tokenize("/")[-1]]
+
       """
       meteor profile \\
-             -i map/${x.id} \\
+             -i ${x.id} \\
              -r ${ref_dir} \\
-             -o profile_dwsize_${x}_${params.downsize_cutoff} \\
-             -seed ${params.seed} \\
+             -o ${x.id}_${params.downsize_cutoff} \\
+             --seed ${params.seed} \\
              -n coverage \\
              -l ${params.downsize_cutoff}
       """
 }
 
 
-
 process meteor_merge{
-  memory "48GB"
-  cpus 2
-  time '10h'
+  memory "6GB"
+  cpus 1
+  time '2h'
   container "sysbiojfgg/meteor2:v0.2"
   containerOptions "--bind ${workflow.homeDir}"
   publishDir "${params.output}/${x.id}"
@@ -141,11 +146,10 @@ process meteor_merge{
   script:
       """
       meteor merge \\
-             -i ${x.id} \\
+             -i ${profile_dir} \\
              -r ${ref_dir} \\
              -o ${params.output} \\
              -p ${x.id} \\
              -s -g 
-      
       """
 }
