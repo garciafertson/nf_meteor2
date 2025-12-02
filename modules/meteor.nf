@@ -162,7 +162,7 @@ process meteor_strain{
   time '4h'
   container "sysbiojfgg/meteor2:v2.0.21"
   containerOptions "--bind ${workflow.homeDir}"
-  publishDir "${params.output}/strain",  mode: 'copy' 
+  publishDir "${params.output}",  mode: 'copy' 
 
   input:
     tuple val(x), path(mapped_dir)
@@ -189,13 +189,13 @@ process meteor_tree{
   time '2h'
   container "sysbiojfgg/meteor2:v2.0.21"
   containerOptions "--bind ${workflow.homeDir}"
-  publishDir "${params.output}/tree" 
+  publishDir "${params.output}" 
 
   input:
     path (mutations)
   output:
     path("tree/*"), emit: strain_tree
-    
+
   script:
       """
       meteor tree \\
