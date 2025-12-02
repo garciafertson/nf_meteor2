@@ -165,7 +165,7 @@ process meteor_strain{
   publishDir "${params.output}",  mode: 'copy' 
 
   input:
-    tuple val(x), path(mapped_dir)
+    path(mapped_dir)
     path(ref_dir)
   output:
     path("/strain/${x.id}"), emit: strain_profiles
@@ -177,7 +177,6 @@ process meteor_strain{
              -r ${ref_dir} \\
              -l 1 \\
              -m 50 \\
-             -p ${x.id} \\
              -o strain \\
              -t ${task.cpus}
       """
