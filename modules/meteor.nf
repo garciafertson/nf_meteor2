@@ -43,7 +43,7 @@ process meteor_map{
   time '12h'
   container "sysbiojfgg/meteor2:v2.0.21"
   containerOptions "--bind ${workflow.homeDir}"
-  publishDir "${params.output}"
+  publishDir "${params.output}" , mode: 'copy'
 
 
   input:
