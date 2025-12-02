@@ -7,6 +7,8 @@ include{meteor_merge as meteor_merge} from '../modules/meteor'
 include{bowtie2_rmhost} from  '../modules/bowtie2'
 include{meteor_profile_downsize} from '../modules/meteor'
 include{meteor_merge as meteor_merge_dw} from '../modules/meteor'
+include{meteor_strain} from '../modules/meteor'
+include{meteor_tree} from '../modules/meteor'
 
 workflow METEOR{
     //read fastq sequences paired end or single end and save into channel
@@ -44,8 +46,8 @@ workflow METEOR{
 
     //readcount=meteor.out.readcount
     //report(readcount)
-
 }
+
 
 workflow METEOR_DOWNSIZE{
   meteor_maps=Channel.fromPath("${params.meteor_maps}", type: "dir")
@@ -55,5 +57,16 @@ workflow METEOR_DOWNSIZE{
   profiled_samples=meteor_profile_downsize.out.profiled_samples
 
   meteor_merge_dw(profiled_samples, catalogue)  
+}
+
+// Perform strain analysis using METEOR
+workflow METEOR_STRAIN{
+  meteor_maps=Channel.fromPath("${params.meteor_maps}", type: "dir")
+  catalogue = Channel.value(file( "${params.catalogue}" ))
+ 
+  meteor_strain(meteor_maps,catalogue)
+  samples_mutations=meteor_strain.out.samples_mutations.collect()
+ 
+  meteor_tree(samples_mutations)
 }
 

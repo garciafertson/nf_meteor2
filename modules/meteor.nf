@@ -2,7 +2,7 @@ process meteor_fastq{
   memory "12GB"
   cpus 2
   time '2h'
-  container "sysbiojfgg/meteor2:v0.2"
+  container "sysbiojfgg/meteor2:v2.0.21"
   containerOptions "--bind ${workflow.homeDir}"
   publishDir "${params.output}/fq" 
 
@@ -41,7 +41,7 @@ process meteor_map{
   errorStrategy 'retry'
   maxRetries 2
   time '12h'
-  container "sysbiojfgg/meteor2:v0.2"
+  container "sysbiojfgg/meteor2:v2.0.21"
   containerOptions "--bind ${workflow.homeDir}"
   publishDir "${params.output}"
 
@@ -78,7 +78,7 @@ process meteor_profile{
   memory "6GB"
   cpus 1
   time '2h'
-  container "sysbiojfgg/meteor2:v0.2"
+  container "sysbiojfgg/meteor2:v2.0.21"
   containerOptions "--bind ${workflow.homeDir}"
   publishDir "${params.output}" 
 
@@ -103,7 +103,7 @@ process meteor_profile_downsize{
   memory "6GB"
   cpus 1
   time "6h"
-  container "sysbiojfgg/meteor2:v0.2"
+  container "sysbiojfgg/meteor2:v2.0.21"
   containerOptions "--bind ${workflow.homeDir}"
   publishDir "${params.output}/profile_dwsize" 
 
@@ -126,6 +126,7 @@ process meteor_profile_downsize{
              -n coverage \\
              -l ${params.downsize_cutoff}
       """
+
 }
 
 
@@ -133,7 +134,7 @@ process meteor_merge{
   memory "6GB"
   cpus 1
   time '2h'
-  container "sysbiojfgg/meteor2:v0.2"
+  container "sysbiojfgg/meteor2:v2.0.21"
   containerOptions "--bind ${workflow.homeDir}"
   publishDir "${params.output}/${x.id}"
 
@@ -151,5 +152,55 @@ process meteor_merge{
              -o ${params.output} \\
              -p ${x.id} \\
              -s -g 
+      """
+}
+
+
+process meteor_strain{
+  memory "12GB"
+  cpus 2
+  time '4h'
+  container "sysbiojfgg/meteor2:v2.0.21"
+  containerOptions "--bind ${workflow.homeDir}"
+  publishDir "${params.output}/strain",  mode: 'copy' 
+
+  input:
+    tuple val(x), path(mapped_dir)
+    path(ref_dir)
+  output:
+    path("/strain/${x.id}"), emit: strain_profiles
+
+  script:
+      """
+      meteor strain \\
+             -i ${mapped_dir} \\
+             -r ${ref_dir} \\
+             -l 1 \\
+             -m 50 \\
+             -p ${x.id} \\
+             -o strain \\
+             -t ${task.cpus}
+      """
+}
+
+process meteor_tree{
+  memory "6GB"
+  cpus 1
+  time '2h'
+  container "sysbiojfgg/meteor2:v2.0.21"
+  containerOptions "--bind ${workflow.homeDir}"
+  publishDir "${params.output}/tree" 
+
+  input:
+    path (mutations)
+  output:
+    path("tree/*"), emit: strain_tree
+    
+  script:
+      """
+      meteor tree \\
+             -i strain \\
+             -o tree \\
+             -t ${task.cpus}
       """
 }
