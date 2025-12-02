@@ -168,7 +168,7 @@ process meteor_strain{
     path(mapped_dir)
     path(ref_dir)
   output:
-    path("/strain/${x.id}"), emit: strain_profiles
+    path("strain/${x.id}"), emit: strain_profiles
 
   script:
       filename= mapped_dir.getSimpleName()
