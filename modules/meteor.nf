@@ -60,6 +60,7 @@ process meteor_map{
              -r ${ref_dir} \\
              -o map \\
              -t ${task.cpus} \\
+             --kf
       """
 
     }else { 
@@ -70,6 +71,7 @@ process meteor_map{
              -o map \\
              -p end-to-end \\
              -t ${task.cpus} \\
+             --kf
       """
     }
 }
