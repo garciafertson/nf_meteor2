@@ -65,7 +65,7 @@ workflow METEOR_STRAIN{
   catalogue = Channel.value(file( "${params.catalogue}" ))
  
   meteor_strain(meteor_maps,catalogue)
-  samples_mutations=meteor_strain.out.samples_mutations.collect()
+  samples_mutations=meteor_strain.out.strain_profiles.collect()
  
   meteor_tree(samples_mutations)
 }
