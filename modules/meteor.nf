@@ -160,8 +160,8 @@ process meteor_merge{
 
 process meteor_strain{
   memory "12GB"
-  cpus 2
-  time '4h'
+  cpus 4 * task.attempt
+  time { 4.h * task.attempt }
   container "sysbiojfgg/meteor2:v2.0.21"
   containerOptions "--bind ${workflow.homeDir}"
   publishDir "${params.output}",  mode: 'copy' 
