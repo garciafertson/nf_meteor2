@@ -180,7 +180,7 @@ process meteor_strain{
              -i ${mapped_dir} \\
              -r ${ref_dir} \\
              -l 1 \\
-             -m 50 \\
+             -m 50% \\
              -o strain \\
              -t ${task.cpus}
       """
